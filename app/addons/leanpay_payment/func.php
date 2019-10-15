@@ -9,6 +9,31 @@ if (!defined('AREA')) {
 }
 
 /**
+ * @param $lang_code
+ * @return mixed
+ */
+function fn_leanpay_payment_get_leanpay_settings($lang_code = DESCR_SL)
+{
+    $leanpay_settings = Settings::instance()->getValues('leanpay_payment', 'ADDON');
+
+    $leanpay_settings['general']['callback_url'] = fn_url('leanpay_callback', 'C');
+
+    return $leanpay_settings['general'];
+}
+
+
+/**
+ * @param $settings
+ * @return $void
+ */
+function fn_leanpay_payment_update_leanpay_settings($settings)
+{
+    foreach ($settings as $setting_name => $setting_value) {
+        Settings::instance()->updateValue($setting_name, $setting_value);
+    }
+}
+
+/**
  * return @void
  */
 function fn_leanpay_delete_payment_processors()

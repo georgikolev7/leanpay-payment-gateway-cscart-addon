@@ -33,6 +33,7 @@
                         <default_value></default_value>
                     </item>
 					<item id="leanpay_demo">
+                        <name>Demo mode</name>
 						<type>checkbox</type>
 						<default_value>Y</default_value>
 					</item>
