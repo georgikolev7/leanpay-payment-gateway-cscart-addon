@@ -23,6 +23,30 @@ function fn_leanpay_payment_get_leanpay_settings($lang_code = DESCR_SL)
 
 
 /**
+ * Throw exception if empty API key.
+ *
+ * @param $unipaySettings
+ * @param $orderInfo
+ * @throws Exception
+ */
+function fn_leanpay_payment_validate($unipaySettings, $orderInfo){    
+    
+    if (empty($unipaySettings['api_key']) && empty($unipaySettings['api_demo_key'])) {
+        throw new Exception('No API key defined');
+    }
+
+    if (empty($orderInfo['order_id'])) {
+        throw new Exception('Order ID is empty');
+    }
+
+    if (empty($orderInfo['total'])) {
+        throw new Exception('Order price is empty');
+    }
+
+}
+
+
+/**
  * @param $settings
  * @return $void
  */
