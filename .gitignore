@@ -36,14 +36,26 @@ design/*
 !design/backend/
 design/backend/*
 
+!design/backend/media/
+design/backend/media/*
+
 !design/backend/templates/
 design/backend/templates/*
 
 !design/backend/templates/addons/
 design/backend/templates/addons/*
 
+!design/backend/media/images/
+design/backend/media/images/*
+
+!design/backend/media/images/addons/
+design/backend/media/images/addons/*
+
 !design/backend/templates/addons/leanpay_payment/
 !design/backend/templates/addons/leanpay_payment/**
+
+!design/backend/media/images/addons/leanpay_payment/
+!design/backend/media/images/addons/leanpay_payment/**
 
 !design/backend/templates/addons/views/
 design/backend/templates/addons/views/*

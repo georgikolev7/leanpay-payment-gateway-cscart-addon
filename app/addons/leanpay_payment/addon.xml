@@ -13,6 +13,11 @@
 			<url>https://www.imode.si</url>
 		</author>
 	</authors>
+    
+    <has_icon>Y</has_icon>
+    <supplier>iMode d.o.o</supplier>
+    <supplier_link>https://www.imode.si/</supplier_link>
+    
     <settings>
         <sections>
             <section id="general">
