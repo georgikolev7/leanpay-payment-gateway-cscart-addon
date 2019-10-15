@@ -8,6 +8,22 @@ if (!defined('AREA')) {
     die('Access denied');
 }
 
+function fn_leanpay_payment_prepare_checkout_payment_methods(&$cart, &$sec, &$payment_tabs)
+{   
+    if (($cart['total'] >= 200) && ($cart['total'] <= 3000)) exit();
+    
+    foreach ($payment_tabs as $g_key => $group) {
+        foreach ($group as $p_key => $payment) {
+            if ($payment['payment'] == 'LeanPay') {
+                unset($payment_tabs[$g_key][$p_key]);
+            }
+        }
+        if (empty($payment_tabs[$g_key])) {
+            unset($payment_tabs[$g_key]);
+        }
+    }
+}
+
 /**
  * @param $lang_code
  * @return mixed
