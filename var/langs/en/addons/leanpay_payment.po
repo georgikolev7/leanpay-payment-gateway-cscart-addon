@@ -1,0 +1,61 @@
+msgid ""
+msgstr "Project-Id-Version: tygh\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language-Team: English\n"
+"Language: en_US"
+
+msgctxt "Languages::leanpay_ipn_transaction_status"
+msgid "LeanPAY Status"
+msgstr "LeanPAY Status"
+
+msgctxt "Languages::process"
+msgid "Process"
+msgstr "Process"
+
+msgctxt "Languages::on_hold"
+msgid "On Hold"
+msgstr "On Hold"
+
+msgctxt "Languages::canceled"
+msgid "Canceled"
+msgstr "Canceled"
+
+msgctxt "Languages::not_finished"
+msgid "Not Finished"
+msgstr "Not Finished"
+
+msgctxt "Languages::ttc_pending"
+msgid "Pending in LeanPAY"
+msgstr "Pending in LeanPAY"
+
+msgctxt "Languages::ttc_completed"
+msgid "Completed in LeanPAY"
+msgstr "Completed in LeanPAY"
+
+msgctxt "Languages::ttc_process"
+msgid "Process in LeanPAY"
+msgstr "Process in LeanPAY"
+
+msgctxt "Languages::ttc_on_hold"
+msgid "On Hold in LeanPAY"
+msgstr "On Hold in LeanPAY"
+
+msgctxt "Languages::ttc_canceled"
+msgid "Canceled in LeanPAY"
+msgstr "Canceled in LeanPAY"
+
+msgctxt "Languages::ttc_not_finished"
+msgid "Not Finished in LeanPAY"
+msgstr "Not Finished in LeanPAY"
+
+msgctxt "Languages::leanpay_logo"
+msgid "Upload logo for Checkout Page"
+msgstr "Upload logo for Checkout Page"
+
+msgctxt "Languages::leanpay_callback_url"
+msgid "LeanPAY Callback URL"
+msgstr "LeanPAY Callback URL"
+
+msgctxt "Languages::leanpay_callback_url_description"
+msgid "Copy this URL and send to LeanPAY"
+msgstr "Copy this URL and send to LeanPAY"
