@@ -6,6 +6,7 @@ if (!defined('BOOTSTRAP')) {
 
 fn_register_hooks(
     'prepare_checkout_payment_methods',
+    'checkout_select_default_payment_method',
     'send_request',
     'parse_items',
     'add_shipment_in_items',

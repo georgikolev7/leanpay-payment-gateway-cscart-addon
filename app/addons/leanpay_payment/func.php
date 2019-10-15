@@ -8,19 +8,43 @@ if (!defined('AREA')) {
     die('Access denied');
 }
 
+/**
+ * Apply LeanPay limits and disable the payment gateway
+ * @param $cart
+ * @param $sec
+ * @param $payment_tabs
+ * @return
+ */
 function fn_leanpay_payment_prepare_checkout_payment_methods(&$cart, &$sec, &$payment_tabs)
 {   
-    if (($cart['total'] >= 200) && ($cart['total'] <= 3000)) exit();
-    
-    foreach ($payment_tabs as $g_key => $group) {
-        foreach ($group as $p_key => $payment) {
-            if ($payment['payment'] == 'LeanPay') {
-                unset($payment_tabs[$g_key][$p_key]);
+    if ((round($cart['total']) < 200) || (round($cart['total']) > 3000))
+    {
+        foreach ($payment_tabs as $g_key => $group) {
+            foreach ($group as $p_key => $payment) {
+                if ($payment['payment'] == 'LeanPay') {
+                    unset($payment_tabs[$g_key][$p_key]);
+                }
+            }
+            if (empty($payment_tabs[$g_key])) {
+                unset($payment_tabs[$g_key]);
             }
         }
-        if (empty($payment_tabs[$g_key])) {
-            unset($payment_tabs[$g_key]);
+    }
+}
+
+function fn_leanpay_payment_checkout_select_default_payment_method(&$cart, &$payment_methods, &$completed_steps)
+{
+    $available_payment_ids = array();
+    foreach ($payment_methods as $group) {
+        foreach ($group as $method) {
+            $available_payment_ids[] = $method['payment_id'];
         }
+    }
+    
+    // Change default payment if it doesn't exists
+    if (floatval($cart['total']) != 0 && !in_array($cart['payment_id'], $available_payment_ids)) {
+        $cart['payment_id'] = reset($available_payment_ids);
+        $cart['payment_method_data'] = fn_get_payment_method_data($cart['payment_id']);
     }
 }
 
