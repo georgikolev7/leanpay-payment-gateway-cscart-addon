@@ -17,7 +17,7 @@ if (!defined('AREA')) {
  */
 function fn_leanpay_payment_prepare_checkout_payment_methods(&$cart, &$sec, &$payment_tabs)
 {   
-    if ((round($cart['total']) < 200) || (round($cart['total']) > 3000))
+    if ((round($cart['total']) < 100) || (round($cart['total']) > 3000))
     {
         foreach ($payment_tabs as $g_key => $group) {
             foreach ($group as $p_key => $payment) {
