@@ -10,6 +10,54 @@ defined('BOOTSTRAP') or die('Access denied');
 // Here are two different contexts for running the script.
 if (defined('PAYMENT_NOTIFICATION')) {
     
+    $post_data = file_get_contents('php://input');
+    if (!empty($post_data))
+    {
+        $post_data = json_decode($post_data, true);
+        if (isset($post_data['vendorTransactionId'])) {
+            
+            $order_id = explode('-', $post_data['vendorTransactionId']);
+            $order_id = $order_id[1];
+            
+            if ($post_data['status'] == 'SUCCESS') {
+                
+                $order_info = fn_leanpay_payment_get_order_by_id($order_id);
+                
+                $response['order_status'] = 'P';
+        		$response['reason_text'] = 'Paid';
+        
+                fn_finish_payment($order_info['order_id'], $response, false);
+                
+            } elseif ($post_data['status'] == 'FAILED') {
+                
+                $order_info = fn_leanpay_payment_get_order_by_id($order_id);
+                
+                $response['order_status'] = 'F';
+        		$response['reason_text'] = 'Payment failed';
+        
+                fn_finish_payment($order_info['order_id'], $response, false);
+                
+            } elseif ($post_data['status'] == 'CANCELED') {
+                
+                $order_info = fn_leanpay_payment_get_order_by_id($order_id);
+                
+                $response['order_status'] = 'I';
+        		$response['reason_text'] = __('text_transaction_cancelled');
+        
+                fn_finish_payment($order_info['order_id'], $response, false);
+                    
+            } else {
+                
+                $order = fn_leanpay_payment_get_order_by_id($order_id);
+        
+                $response['order_status'] = 'I';
+                $response["reason_text"] = 'Payment expired';
+                
+                fn_finish_payment($order['order_id'], $response);
+            }
+        }
+    }
+    
     /**
      * Receiving and processing the answer
      * from third-party services and payment systems.
@@ -17,16 +65,22 @@ if (defined('PAYMENT_NOTIFICATION')) {
     if ($mode == 'complete' && !empty($_REQUEST['order_id'])) {
 
         $cart = &Tygh::$app['session']['cart'];
+        $order_id = $_REQUEST['order_id'];
 
-        $order_info = fn_leanpay_payment_get_order_by_timestamp($_REQUEST['order_id']);
+        $order_info = fn_leanpay_payment_get_order_by_id($order_id);
+        
+        $response['order_status'] = 'P';
+		$response['reason_text'] = 'Paid';
 
-        fn_finish_payment($order_info['order_id'], $order_info['payment_info'], false);
+        fn_finish_payment($order_info['order_id'], $response, false);
 
-        fn_order_placement_routines('repay', $order_info['order_id'], 'A');
+        fn_order_placement_routines('route', $order_info['order_id'], false);
 
     } elseif ($mode == 'cancel') {
-
-        $order = fn_leanpay_payment_get_order_by_timestamp($_REQUEST['order_id']);
+        
+        $order_id = $_REQUEST['order_id'];
+        
+        $order = fn_leanpay_payment_get_order_by_id($order_id);
 
         $response['order_status'] = 'N';
         $response["reason_text"] = __('text_transaction_cancelled');
@@ -73,4 +127,5 @@ if (defined('PAYMENT_NOTIFICATION')) {
         fn_set_notification('E', __('Error'), $exception->getMessage());
     }
 
+    fn_start_payment($order_info['order_id'], false, ['token' => $result['token']]);
 }
