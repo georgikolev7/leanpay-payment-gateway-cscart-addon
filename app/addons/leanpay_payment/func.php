@@ -17,16 +17,19 @@ if (!defined('AREA')) {
  */
 function fn_leanpay_payment_prepare_checkout_payment_methods(&$cart, &$sec, &$payment_tabs)
 {   
-    if ((round($cart['total']) < 100) || (round($cart['total']) > 3000))
+    if ((isset($cart)) && (isset($cart['total'])))
     {
-        foreach ($payment_tabs as $g_key => $group) {
-            foreach ($group as $p_key => $payment) {
-                if ($payment['payment'] == 'LeanPay') {
-                    unset($payment_tabs[$g_key][$p_key]);
+        if ((round($cart['total']) < 100) || (round($cart['total']) > 3000))
+        {
+            foreach ($payment_tabs as $g_key => $group) {
+                foreach ($group as $p_key => $payment) {
+                    if ($payment['payment'] == 'LeanPay') {
+                        unset($payment_tabs[$g_key][$p_key]);
+                    }
                 }
-            }
-            if (empty($payment_tabs[$g_key])) {
-                unset($payment_tabs[$g_key]);
+                if (empty($payment_tabs[$g_key])) {
+                    unset($payment_tabs[$g_key]);
+                }
             }
         }
     }
@@ -59,14 +62,14 @@ function fn_leanpay_payment_built_request_data(array $params){
     $orderInfo = $params['orderInfo'];
     $leanpaySettings = $params['leanpaySettings'];
 
-    $backLink = fn_leanpay_payment_get_back_link((int)$orderInfo['timestamp']);
+    $backLink = fn_leanpay_payment_get_back_link((int)$orderInfo['order_id']);
 
     $api_key = ($leanpaySettings['leanpay_demo'] == 'Y') ? $leanpaySettings['api_demo_key'] : $leanpaySettings['api_key'];
     $currentLanguage = Registry::get('settings.Appearance.frontend_default_language');
     
     $data = array(
         'vendorApiKey' => $api_key,
-        'vendorTransactionId' => strtotime('now'),
+        'vendorTransactionId' => strtotime('now') . '-' . $orderInfo['order_id'],
         'amount' => $orderInfo['total'],
         'successUrl' => $backLink['successUrl'],
         'errorUrl' => $backLink['errorUrl'],
@@ -89,6 +92,17 @@ function fn_leanpay_payment_built_request_data(array $params){
 function fn_leanpay_payment_get_order_by_timestamp($id){
     $condition = fn_get_company_condition('?:orders.company_id');
     $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.timestamp = ?i $condition", $id);  
+
+    return $order;
+}
+
+/**
+ * @param $id
+ * @return mixed
+ */
+function fn_leanpay_payment_get_order_by_id($id){
+    $condition = fn_get_company_condition('?:orders.company_id');
+    $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.order_id = ?i $condition", $id);  
 
     return $order;
 }
