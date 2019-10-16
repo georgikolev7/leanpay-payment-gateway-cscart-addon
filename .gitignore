@@ -68,6 +68,7 @@ design/backend/templates/addons/views/payments/components/*
 
 !design/backend/templates/addons/views/payments/components/cc_processors/
 !design/backend/templates/addons/views/payments/components/cc_processors/leanpay.tpl
+!design/backend/templates/addons/views/payments/components/cc_processors/leanpay_payment.tpl
 design/backend/templates/addons/views/payments/components/cc_processors/*
 
 !js/

@@ -49,6 +49,131 @@ function fn_leanpay_payment_checkout_select_default_payment_method(&$cart, &$pay
 }
 
 /**
+ * Build LeanPAY Request data.
+ *
+ * @param array $params
+ * @return array
+ */
+function fn_leanpay_payment_built_request_data(array $params){
+
+    $orderInfo = $params['orderInfo'];
+    $leanpaySettings = $params['leanpaySettings'];
+
+    $backLink = fn_leanpay_payment_get_back_link((int)$orderInfo['timestamp']);
+
+    $api_key = ($leanpaySettings['leanpay_demo'] == 'Y') ? $leanpaySettings['api_demo_key'] : $leanpaySettings['api_key'];
+    $currentLanguage = Registry::get('settings.Appearance.frontend_default_language');
+    
+    $data = array(
+        'vendorApiKey' => $api_key,
+        'vendorTransactionId' => strtotime('now'),
+        'amount' => $orderInfo['total'],
+        'successUrl' => $backLink['successUrl'],
+        'errorUrl' => $backLink['errorUrl'],
+        'vendorPhoneNumber' => $orderInfo['phone'],
+        'vendorFirstName' => $orderInfo['firstname'],
+        'vendorLastName' => $orderInfo['lastname'],
+        'vendorAddress' => $orderInfo['b_address'],
+        'vendorZip' => $orderInfo['b_zipcode'],
+        'vendorCity' => $orderInfo['b_city'],
+        'language' => $currentLanguage
+    );
+
+    return $data;
+}
+
+/**
+ * @param $id
+ * @return mixed
+ */
+function fn_leanpay_payment_get_order_by_timestamp($id){
+    $condition = fn_get_company_condition('?:orders.company_id');
+    $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.timestamp = ?i $condition", $id);  
+
+    return $order;
+}
+
+/**
+ * Curl request.
+ *
+ * @param null $data
+ * @return mixed
+ * @throws Exception
+ */
+function fn_leanpay_payment_send_request($data = null, $settings)
+{
+    $ch = curl_init();
+    
+    $api_url = fn_leanpay_payment_get_unipay_checkout_url($settings) . '/vendor/token';
+
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_VERBOSE, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt(
+        $ch,
+        CURLOPT_HTTPHEADER,
+        array(
+            'Content-Type: application/json'
+        )
+    );    
+
+    $result = curl_exec($ch);    
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $response = json_decode($result, true);
+
+    if($status !== 200){
+        throw new Exception("Error: call to URL failed with status: $status, response: $response");
+    }
+
+    if($response === null){
+        throw new Exception("LeanPAY Response is null");
+    }
+
+    return $response;
+}
+
+/**
+ * UniPAY Checkout live url.
+ *
+ * @return string
+ */
+function fn_leanpay_payment_get_unipay_checkout_url($settings)
+{
+    return ($settings['leanpay_demo'] == 'Y') ? 'https://lapp.leanpay.si' : 'https://app.leanpay.si';
+}
+
+function fn_leanpay_payment_redirect_customer($token, $settings)
+{
+    $api_url = fn_leanpay_payment_get_unipay_checkout_url($settings) . '/vendor/checkout';
+    
+    $html = '<html><head><style></style></head><body>
+    <form id="form" action="' . $api_url . '" method="post">
+    <input type="hidden" name="token" value="' . $token . '"/>
+    </form>
+    <script>document.getElementById("form").submit();</script>
+    </body></html>';
+    
+    echo $html;
+}
+
+/**
+ * Build backLink.
+ * Generate Cancel and confirm links.
+ *
+ * @param $orderId
+ * @return string
+ */
+function fn_leanpay_payment_get_back_link($orderId){
+    $successUrl = fn_url("payment_notification.complete?payment=leanpay_payment_processor&order_id=" . $orderId, AREA, 'current');
+    $errorUrl = fn_url("payment_notification.cancel?payment=leanpay_payment_processor&order_id=" . $orderId, AREA, 'current');
+
+    return array('successUrl' => $successUrl, 'errorUrl' => $errorUrl);
+}
+
+/**
  * @param $lang_code
  * @return mixed
  */
