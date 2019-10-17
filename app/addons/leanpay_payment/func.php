@@ -9,6 +9,34 @@ if (!defined('AREA')) {
 }
 
 /**
+ * Process LeanPay installments and save it
+ * @param array
+ * @return
+ */
+function fn_leanpay_payment_process_installment_group($data)
+{
+    $hash = $data['groupId'];
+    $group_row = db_get_row("SELECT id FROM ?:leanpay_installments_groups WHERE hash = ?i", $hash);
+    $group_data['hash'] = $hash;
+    $group_data['name'] = $data['groupName'];
+    
+    if (empty($group_row)) {
+        $group_row['id'] = db_query("INSERT INTO ?:leanpay_installments_groups ?e", $group_data);
+    }
+    
+    foreach ($data['loanAmounts'] as $loadAmount) {
+        $installment_data = [
+            'group_id' => $group_row['id'],
+            'amount' => $loadAmount['loanAmount'],
+            'months' => $loadAmount['possibleInstallments'][0]['numberOfMonths'],
+            'installment' => $loadAmount['possibleInstallments'][0]['installmentAmout']
+        ];
+        
+        db_query("REPLACE INTO ?:leanpay_installments_data ?e", $installment_data);
+    }
+}
+
+/**
  * Apply LeanPay limits and disable the payment gateway
  * @param $cart
  * @param $sec
@@ -150,7 +178,49 @@ function fn_leanpay_payment_send_request($data = null, $settings)
 }
 
 /**
- * UniPAY Checkout live url.
+ * Curl request to fetch installments
+ *
+ * @return mixed
+ * @throws Exception
+ */
+function fn_leanpay_payment_get_installments($settings)
+{
+    $ch = curl_init();
+    
+    $api_url = fn_leanpay_payment_get_unipay_checkout_url($settings) . '/vendor/installment-plans';
+    $api_key = ($settings['leanpay_demo'] == 'Y') ? $settings['api_demo_key'] : $settings['api_key'];
+
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_VERBOSE, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['vendorApiKey' => $api_key]));
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt(
+        $ch,
+        CURLOPT_HTTPHEADER,
+        array(
+            'Content-Type: application/json'
+        )
+    );
+
+    $result = curl_exec($ch);    
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $response = json_decode($result, true);
+
+    if($status !== 200){
+        throw new Exception("Error: call to URL failed with status: $status, response: $response");
+    }
+
+    if($response === null){
+        throw new Exception("LeanPAY Response is null");
+    }
+
+    return $response;
+}
+
+/**
+ * LeanPAY Checkout live url.
  *
  * @return string
  */
@@ -204,13 +274,13 @@ function fn_leanpay_payment_get_leanpay_settings($lang_code = DESCR_SL)
 /**
  * Throw exception if empty API key.
  *
- * @param $unipaySettings
+ * @param $leanpaySettings
  * @param $orderInfo
  * @throws Exception
  */
-function fn_leanpay_payment_validate($unipaySettings, $orderInfo){    
+function fn_leanpay_payment_validate($leanpaySettings, $orderInfo){    
     
-    if (empty($unipaySettings['api_key']) && empty($unipaySettings['api_demo_key'])) {
+    if (empty($leanpaySettings['api_key']) && empty($leanpaySettings['api_demo_key'])) {
         throw new Exception('No API key defined');
     }
 

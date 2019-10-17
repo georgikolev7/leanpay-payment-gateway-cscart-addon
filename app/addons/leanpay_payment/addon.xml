@@ -51,6 +51,29 @@
 			(processor, processor_script, processor_template, admin_template, callback, type, addon)
 			VALUES ('LeanPay Payment', 'leanpay_payment_processor.php', 'views/orders/components/payments/cc_outside.tpl', 'leanpay.tpl', 'N', 'P', 'leanpay_payment');
 		</item>
+        <item for="install">
+            CREATE TABLE `?:leanpay_installments_groups` (
+                `id` mediumint(7) unsigned NOT NULL auto_increment,
+                `hash` varchar(255) NOT NULL,
+                `name` varchar(150) NOT NULL,
+                PRIMARY KEY  (`id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=UTF8
+        </item>
+        <item for="install">
+            CREATE TABLE `?:leanpay_installments_data` (
+                `id` mediumint(7) unsigned NOT NULL auto_increment,
+                `group_id` int(11) unsigned NOT NULL,
+                `amount` decimal(15,4) unsigned NOT NULL,
+                `months` int(5) unsigned NOT NULL,
+                `installment` decimal(15,4) unsigned NOT NULL,
+                PRIMARY KEY  (`id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=UTF8
+        </item>
+        <item for="install">
+            ALTER TABLE `?:leanpay_installments_data` ADD UNIQUE `unique_index` (`group_id`, `amount`, `months`);
+        </item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:leanpay_installments_groups`</item>
+        <item for="uninstall">DROP TABLE IF EXISTS `?:leanpay_installments_data`</item>
     </queries>
     <functions>
         <item for="uninstall">fn_leanpay_delete_payment_processors</item>
