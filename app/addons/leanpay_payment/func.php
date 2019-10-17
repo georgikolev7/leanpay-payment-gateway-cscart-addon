@@ -8,6 +8,14 @@ if (!defined('AREA')) {
     die('Access denied');
 }
 
+/**
+ * Fetch all installemnts for the current product
+ * @param $product_data
+ * @param $auth
+ * @param $preview
+ * @param $lang_code
+ * @return mixed
+ */
 function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $preview, $lang_code)
 {
     $param['product_id'] = $product_data['product_id'];
@@ -27,6 +35,12 @@ function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $previe
     }
 }
 
+
+/**
+ * Calculate how much it's the downpayment based on price
+ * @param $price
+ * @return int
+ */
 function fn_leanpay_payment_get_downpayment($price)
 {
     switch($price) {
@@ -45,6 +59,10 @@ function fn_leanpay_payment_get_downpayment($price)
     }
 }
 
+/**
+ * Get ID of the default installment group
+ * @return int/boolean
+ */
 function fn_leanpay_payment_get_default_group_id()
 {
     $group_row = db_get_row("SELECT id FROM ?:leanpay_installments_groups WHERE name = ?i LIMIT 1", LEANPAY_DEFAULT_GROUP_NAME);
