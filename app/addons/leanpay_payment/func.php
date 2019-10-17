@@ -8,6 +8,54 @@ if (!defined('AREA')) {
     die('Access denied');
 }
 
+function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $preview, $lang_code)
+{
+    $param['product_id'] = $product_data['product_id'];
+    
+    if ((round($product_data['price']) >= 100) && (round($product_data['price']) <= 3000))
+    {
+        $price = round($product_data['price']);
+        $group_id = fn_leanpay_payment_get_default_group_id();
+        $layouts_data = db_get_array("SELECT * FROM ?:leanpay_installments_data WHERE group_id = ?s AND amount = ?s", $group_id, $price);
+        
+        $product_data['leanpay_installments'] = $layouts_data;
+        // Downpayment (polog)
+        $product_data['leanpay_downpayment'] = fn_leanpay_payment_get_downpayment($price);
+    } else {
+        $product_data['leanpay_installments'] = false;
+        $product_data['leanpay_downpayment'] = false;
+    }
+}
+
+function fn_leanpay_payment_get_downpayment($price)
+{
+    switch($price) {
+        case (($price < 1000)):
+            return 0;
+        break;
+        case (($price > 1000) && ($price < 2000)):
+            return 100;
+        break;
+        case (($price > 2000) && ($price < 3000)):
+            return 150;
+        break;
+        case ($price == 3000):
+            return 200;
+        break;
+    }
+}
+
+function fn_leanpay_payment_get_default_group_id()
+{
+    $group_row = db_get_row("SELECT id FROM ?:leanpay_installments_groups WHERE name = ?i LIMIT 1", LEANPAY_DEFAULT_GROUP_NAME);
+    
+    if (!empty($group_row)) {
+        return $group_row['id'];
+    }
+    
+    return false;
+}
+
 /**
  * Process LeanPay installments and save it
  * @param array
@@ -15,24 +63,26 @@ if (!defined('AREA')) {
  */
 function fn_leanpay_payment_process_installment_group($data)
 {
-    $hash = $data['groupId'];
-    $group_row = db_get_row("SELECT id FROM ?:leanpay_installments_groups WHERE hash = ?i", $hash);
-    $group_data['hash'] = $hash;
-    $group_data['name'] = $data['groupName'];
-    
-    if (empty($group_row)) {
-        $group_row['id'] = db_query("INSERT INTO ?:leanpay_installments_groups ?e", $group_data);
-    }
-    
-    foreach ($data['loanAmounts'] as $loadAmount) {
-        $installment_data = [
-            'group_id' => $group_row['id'],
-            'amount' => $loadAmount['loanAmount'],
-            'months' => $loadAmount['possibleInstallments'][0]['numberOfMonths'],
-            'installment' => $loadAmount['possibleInstallments'][0]['installmentAmout']
-        ];
+    if ($data['groupName'] === LEANPAY_DEFAULT_GROUP_NAME) {
+        $hash = $data['groupId'];
+        $group_row = db_get_row("SELECT id FROM ?:leanpay_installments_groups WHERE hash = ?i", $hash);
+        $group_data['hash'] = $hash;
+        $group_data['name'] = $data['groupName'];
         
-        db_query("REPLACE INTO ?:leanpay_installments_data ?e", $installment_data);
+        if (empty($group_row)) {
+            $group_row['id'] = db_query("INSERT INTO ?:leanpay_installments_groups ?e", $group_data);
+        }
+        
+        foreach ($data['loanAmounts'] as $loadAmount) {
+            $installment_data = [
+                'group_id' => $group_row['id'],
+                'amount' => $loadAmount['loanAmount'],
+                'months' => $loadAmount['possibleInstallments'][0]['numberOfMonths'],
+                'installment' => $loadAmount['possibleInstallments'][0]['installmentAmout']
+            ];
+            
+            db_query("REPLACE INTO ?:leanpay_installments_data ?e", $installment_data);
+        }
     }
 }
 
