@@ -20,7 +20,7 @@ function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $previe
 {
     $param['product_id'] = $product_data['product_id'];
     
-    if ((round($product_data['price']) >= 100) && (round($product_data['price']) <= 3000))
+    if ((round($product_data['price']) >= 50) && (round($product_data['price']) <= 3000))
     {
         $price = round($product_data['price']);
         $group_id = fn_leanpay_payment_get_default_group_id();
