@@ -13,13 +13,15 @@
 ```smarty
 {capture name="leanpay_payment_`$obj_id`"}
     {if $product.leanpay_installments}
-    <span class="cm-reload-{$obj_prefix}{$obj_id}" id="leanpay_payment_update_{$obj_prefix}{$obj_id}">
-       <ul class="installments" data-price="{$product.price}">
-           {foreach from=$product.leanpay_installments item=installment}
-              <li>polog	<strong>{$product.leanpay_downpayment|string_format:"%.2f"}€</strong> + {$installment.months} x <strong>{$installment.installment|string_format:"%.2f"}€</strong></li>
-            {/foreach}
-        </ul>
-    <!--leanpay_payment_update_{$obj_prefix}{$obj_id}--></span>
+    
+        <span class="cm-reload-{$obj_prefix}{$obj_id}" id="leanpay_payment_update_{$obj_prefix}{$obj_id}">
+            <ul class="installments" data-price="{$product.price}">
+                {foreach from=$product.leanpay_installments item=installment}
+                    <li>polog	<strong>{$product.leanpay_downpayment|string_format:"%.2f"}€</strong> + {$installment.months} x <strong>{$installment.installment|string_format:"%.2f"}€</strong></li>
+                {/foreach}
+            </ul>
+        <!--leanpay_payment_update_{$obj_prefix}{$obj_id}--></span>
+        
     {/if}
 {/capture}
 
