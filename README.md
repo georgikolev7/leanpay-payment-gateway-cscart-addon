@@ -36,7 +36,7 @@
 {$smarty.capture.$list_discount nofilter}
 ```
 
-and add after the capture
+and add after it the capture to display the installments
 ```smarty
 {assign var="leanpay_payment" value="leanpay_payment_`$obj_id`"}
 {$smarty.capture.$leanpay_payment nofilter}
