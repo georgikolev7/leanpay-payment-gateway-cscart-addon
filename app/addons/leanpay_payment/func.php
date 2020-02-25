@@ -20,8 +20,7 @@ function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $previe
 {
     $param['product_id'] = $product_data['product_id'];
     
-    if ((round($product_data['price']) >= 50) && (round($product_data['price']) <= 3000))
-    {
+    if ((round($product_data['price']) >= 50) && (round($product_data['price']) <= 3000)) {
         $price = round($product_data['price']);
         $group_id = fn_leanpay_payment_get_default_group_id();
         $layouts_data = db_get_array("SELECT * FROM ?:leanpay_installments_data WHERE group_id = ?s AND amount = ?s", $group_id, $price);
@@ -35,6 +34,26 @@ function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $previe
     }
 }
 
+function fn_leanpay_payment_gather_additional_products_data_post($product_ids, $params, &$products, $auth)
+{
+    if ($params['get_for_one_product'] == true) {
+        $product_data = $products[0];
+        
+        if ((round($product_data['price']) >= 50) && (round($product_data['price']) <= 3000)) {
+            $price = round($product_data['price']);
+            $group_id = fn_leanpay_payment_get_default_group_id();
+            $layouts_data = db_get_array("SELECT * FROM ?:leanpay_installments_data WHERE group_id = ?s AND amount = ?s", $group_id, $price);
+            
+            $products[0]['leanpay_installments'] = $layouts_data;
+            // Downpayment (polog)
+            $products[0]['leanpay_downpayment'] = fn_leanpay_payment_get_downpayment($price);
+        } else {
+            $products[0]['leanpay_installments'] = false;
+            $products[0]['leanpay_downpayment'] = false;
+        }
+    }
+}
+
 
 /**
  * Calculate how much it's the downpayment based on price
@@ -43,7 +62,7 @@ function fn_leanpay_payment_get_product_data_post(&$product_data, $auth, $previe
  */
 function fn_leanpay_payment_get_downpayment($price)
 {
-    switch($price) {
+    switch ($price) {
         case (($price < 1000)):
             return 0;
         break;
@@ -112,11 +131,9 @@ function fn_leanpay_payment_process_installment_group($data)
  * @return
  */
 function fn_leanpay_payment_prepare_checkout_payment_methods(&$cart, &$sec, &$payment_tabs)
-{   
-    if ((isset($cart)) && (isset($cart['total'])))
-    {
-        if ((round($cart['total']) < 100) || (round($cart['total']) > 3000))
-        {
+{
+    if ((isset($cart)) && (isset($cart['total']))) {
+        if ((round($cart['total']) < 100) || (round($cart['total']) > 3000)) {
             foreach ($payment_tabs as $g_key => $group) {
                 foreach ($group as $p_key => $payment) {
                     if ($payment['payment'] == 'LeanPay') {
@@ -153,8 +170,8 @@ function fn_leanpay_payment_checkout_select_default_payment_method(&$cart, &$pay
  * @param array $params
  * @return array
  */
-function fn_leanpay_payment_built_request_data(array $params){
-
+function fn_leanpay_payment_built_request_data(array $params)
+{
     $orderInfo = $params['orderInfo'];
     $leanpaySettings = $params['leanpaySettings'];
 
@@ -185,9 +202,10 @@ function fn_leanpay_payment_built_request_data(array $params){
  * @param $id
  * @return mixed
  */
-function fn_leanpay_payment_get_order_by_timestamp($id){
+function fn_leanpay_payment_get_order_by_timestamp($id)
+{
     $condition = fn_get_company_condition('?:orders.company_id');
-    $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.timestamp = ?i $condition", $id);  
+    $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.timestamp = ?i $condition", $id);
 
     return $order;
 }
@@ -196,9 +214,10 @@ function fn_leanpay_payment_get_order_by_timestamp($id){
  * @param $id
  * @return mixed
  */
-function fn_leanpay_payment_get_order_by_id($id){
+function fn_leanpay_payment_get_order_by_id($id)
+{
     $condition = fn_get_company_condition('?:orders.company_id');
-    $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.order_id = ?i $condition", $id);  
+    $order = db_get_row("SELECT * FROM ?:orders WHERE ?:orders.order_id = ?i $condition", $id);
 
     return $order;
 }
@@ -228,17 +247,17 @@ function fn_leanpay_payment_send_request($data = null, $settings)
         array(
             'Content-Type: application/json'
         )
-    );    
+    );
 
-    $result = curl_exec($ch);    
+    $result = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $response = json_decode($result, true);
 
-    if($status !== 200){
+    if ($status !== 200) {
         throw new Exception("Error: call to URL failed with status: $status, response: $response");
     }
 
-    if($response === null){
+    if ($response === null) {
         throw new Exception("LeanPAY Response is null");
     }
 
@@ -272,15 +291,15 @@ function fn_leanpay_payment_get_installments($settings)
         )
     );
 
-    $result = curl_exec($ch);    
+    $result = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $response = json_decode($result, true);
 
-    if($status !== 200){
+    if ($status !== 200) {
         throw new Exception("Error: call to URL failed with status: $status, response: $response");
     }
 
-    if($response === null){
+    if ($response === null) {
         throw new Exception("LeanPAY Response is null");
     }
 
@@ -318,7 +337,8 @@ function fn_leanpay_payment_redirect_customer($token, $settings)
  * @param $orderId
  * @return string
  */
-function fn_leanpay_payment_get_back_link($orderId){
+function fn_leanpay_payment_get_back_link($orderId)
+{
     $successUrl = fn_url("payment_notification.complete?payment=leanpay_payment_processor&order_id=" . $orderId, AREA, 'current');
     $errorUrl = fn_url("payment_notification.cancel?payment=leanpay_payment_processor&order_id=" . $orderId, AREA, 'current');
 
@@ -346,8 +366,8 @@ function fn_leanpay_payment_get_leanpay_settings($lang_code = DESCR_SL)
  * @param $orderInfo
  * @throws Exception
  */
-function fn_leanpay_payment_validate($leanpaySettings, $orderInfo){    
-    
+function fn_leanpay_payment_validate($leanpaySettings, $orderInfo)
+{
     if (empty($leanpaySettings['api_key']) && empty($leanpaySettings['api_demo_key'])) {
         throw new Exception('No API key defined');
     }
@@ -359,7 +379,6 @@ function fn_leanpay_payment_validate($leanpaySettings, $orderInfo){
     if (empty($orderInfo['total'])) {
         throw new Exception('Order price is empty');
     }
-
 }
 
 
@@ -383,5 +402,3 @@ function fn_leanpay_delete_payment_processors()
     db_query("DELETE FROM ?:payments WHERE processor_id IN (SELECT processor_id FROM ?:payment_processors WHERE processor_script IN ('leanpay_payment_processor.php'))");
     db_query("DELETE FROM ?:payment_processors WHERE processor_script IN ('leanpay_payment_processor.php')");
 }
-
-?>

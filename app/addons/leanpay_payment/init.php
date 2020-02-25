@@ -7,6 +7,7 @@ if (!defined('BOOTSTRAP')) {
 fn_define('LEANPAY_DEFAULT_GROUP_NAME', 'Client Max Interest 6.95%, Vendor Max Interest 0%');
 
 fn_register_hooks(
+    'gather_additional_products_data_post',
     'get_product_data_post',
     'prepare_checkout_payment_methods',
     'checkout_select_default_payment_method',
