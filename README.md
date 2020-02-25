@@ -32,9 +32,9 @@
 ```
 
 2. Inside your "design/themes/<strong>NAME_OF_YOUR_THEME</strong>/templates/blocks/product_templates/default_template.tpl find
-<code>
+```smarty
   {$smarty.capture.$list_discount nofilter}
-</code>
+```
 
 and add after the capture
 ```smarty
